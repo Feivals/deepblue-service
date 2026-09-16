@@ -1,5 +1,6 @@
 package com.deepblue.rescue.service.impl;
 
+import com.deepblue.rescue.domain.RescueCase;
 import com.deepblue.rescue.domain.RescueStatus;
 import com.deepblue.rescue.dto.request.ChangeRescueStatusRequest;
 import com.deepblue.rescue.dto.response.RescueCaseResponse;
@@ -15,8 +16,7 @@ import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
-public class RescueCaseServiceImpl
-        implements RescueCaseService {
+public class RescueCaseServiceImpl implements RescueCaseService {
 
     private final RescueCaseRepository repository;
 
@@ -52,6 +52,70 @@ public class RescueCaseServiceImpl
                 .map(mapper::toResponse)
                 .toList();
     }
-    
+    private boolean isValidTransition(
+            RescueStatus current,
+            RescueStatus next) {
+
+        return switch (current) {
+
+            case ADMITTED ->
+                    next == RescueStatus.UNDER_EVALUATION;
+
+            case UNDER_EVALUATION ->
+                    next == RescueStatus.IN_REHABILITATION;
+
+            case IN_REHABILITATION ->
+                    next == RescueStatus.READY_FOR_RELEASE;
+
+            case READY_FOR_RELEASE ->
+                    next == RescueStatus.RELEASED;
+
+            default -> false;
+        };
+    }
+    @Override
+    @Transactional
+    public RescueCaseResponse changeStatus(
+            String caseCode,
+            ChangeRescueStatusRequest request) {
+
+
+        // TODO 1 y TODO 2
+        // Buscar el RescueCase. Si no existe: ResourceNotFoundException.
+        RescueCase rescueCase = repository
+                .findByCaseCode(caseCode)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                "Rescue case not found: " + caseCode
+                        )
+                );
+
+        // TODO 3
+        // Obtener currentStatus.
+        RescueStatus currentStatus = rescueCase.getStatus();
+        RescueStatus newStatus = request.status();
+
+        // TODO 4 y TODO 5
+        // Validar transición. Si no es válida: BusinessRuleException.
+        if (!isValidTransition(currentStatus, newStatus)) {
+            throw new BusinessRuleException(
+                    "Invalid status transition from "
+                            + currentStatus + " to " + newStatus
+            );
+        }
+
+        // TODO 6
+        // Cambiar status.
+        rescueCase.setStatus(newStatus);
+
+        // TODO 7
+        // Guardar.
+        RescueCase saved = repository.save(rescueCase);
+
+        // TODO 8
+        // Transformar a Response.
+        return mapper.toResponse(saved);
+    }
+
 }
 

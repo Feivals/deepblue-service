@@ -1,6 +1,7 @@
 package com.deepblue.rescue.repository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -52,4 +53,5 @@ public interface TreatmentRepository
             @Param("expertiseName") String expertiseName
     );
 
+    List<Treatment> findByAnimalAnimalCodeOrderByPerformedAtAsc(String animalCode);
 }
