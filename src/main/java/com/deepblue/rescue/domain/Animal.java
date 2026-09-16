@@ -53,11 +53,13 @@ public class Animal {
     public Animal() {
     }
 
-    public Animal(String animalCode,String commonName,String scientificName,AnimalSex sex){
+    public Animal(String animalCode,String commonName,String scientificName,AnimalSex sex,
+                  RescueCase rescueCase){
         this.animalCode = animalCode;
         this.commonName = commonName;
         this.scientificName = scientificName;
         this.sex = sex;
+        this.rescueCase = rescueCase;
     }
 
     public Long getId() {

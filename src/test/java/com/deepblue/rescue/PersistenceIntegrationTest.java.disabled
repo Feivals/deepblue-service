@@ -130,7 +130,8 @@ class PersistenceIntegrationTest {
     void rescueCaseAndAnimalHaveBidirectionalOneToOneRelationship() {
         RescueCenter center = rescueCenterRepository.save(new RescueCenter("DB-CAR-50", "Caribbean Center", "Santa Marta"));
         RescueCase rescueCase = newRescueCase("RES-2026-001", center, RescueStatus.ADMITTED);
-        Animal animal = new Animal("AN-2026-001", "Green Sea Turtle", "Chelonia mydas", AnimalSex.UNKNOWN);
+        Animal animal = new Animal("AN-2026-001", "Green Sea Turtle", "Chelonia mydas",
+                AnimalSex.UNKNOWN, rescueCase);
         rescueCase.assignAnimal(animal);
 
         RescueCase savedCase = rescueCaseRepository.saveAndFlush(rescueCase);
@@ -145,7 +146,8 @@ class PersistenceIntegrationTest {
     void savingAnimalCascadesItsMedicalRecord() {
         RescueCenter center = rescueCenterRepository.save(new RescueCenter("DB-CAR-51", "Caribbean Center", "Santa Marta"));
         RescueCase rescueCase = rescueCaseRepository.save(newRescueCase("RES-2026-002", center, RescueStatus.ADMITTED));
-        Animal animal = new Animal("AN-2026-002", "Green Sea Turtle", "Chelonia mydas", AnimalSex.FEMALE);
+        Animal animal = new Animal("AN-2026-001", "Green Sea Turtle", "Chelonia mydas",
+                AnimalSex.UNKNOWN, rescueCase);
         animal.setRescueCase(rescueCase);
         MedicalRecord record = new MedicalRecord(
                 new BigDecimal("28.40"), "STABLE", "Left front flipper injury", null
@@ -271,8 +273,14 @@ class PersistenceIntegrationTest {
         RescueCase secondCase = rescueCaseRepository.save(
                 newRescueCase("RES-59-002", center, RescueStatus.ADMITTED)
         );
-        Animal duplicateAnimal = new Animal("AN-100", "Green Sea Turtle", "Chelonia mydas", AnimalSex.UNKNOWN);
-        duplicateAnimal.setRescueCase(secondCase);
+        Animal duplicateAnimal = new Animal(
+                "AN-2026-001",
+                "Green Sea Turtle",
+                "Chelonia mydas",
+                AnimalSex.UNKNOWN,
+                secondCase            // 👈 La variable que SÍ existe
+        );
+
 
         assertThrows(DataIntegrityViolationException.class,
                 () -> animalRepository.saveAndFlush(duplicateAnimal));
@@ -330,7 +338,8 @@ class PersistenceIntegrationTest {
         );
         rescueCase.setRescueCenter(center);
 
-        Animal animal = new Animal("AN-2026-100", "Green Sea Turtle", "Chelonia mydas", AnimalSex.FEMALE);
+        Animal animal = new Animal("AN-2026-001", "Green Sea Turtle", "Chelonia mydas",
+                AnimalSex.UNKNOWN, rescueCase);
         animal.assignMedicalRecord(new MedicalRecord(
                 new BigDecimal("27.80"),
                 "STABLE",
@@ -433,7 +442,8 @@ class PersistenceIntegrationTest {
 
     private Animal saveAnimal(String code, RescueCase rescueCase) {
         RescueCase savedCase = rescueCaseRepository.save(rescueCase);
-        Animal animal = new Animal(code, "Green Sea Turtle", "Chelonia mydas", AnimalSex.UNKNOWN);
+        Animal animal = new Animal("AN-2026-001", "Green Sea Turtle", "Chelonia mydas",
+                AnimalSex.UNKNOWN, rescueCase);
         animal.setRescueCase(savedCase);
         return animalRepository.saveAndFlush(animal);
     }
